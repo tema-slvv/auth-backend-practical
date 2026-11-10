@@ -39,7 +39,10 @@ export class AuthService {
       AuthMethod.CREDENTIALS,
       false,
     );
-    return this.saveSession(req, newUser);
+
+    const session = await this.saveSession(req, newUser);
+
+    return session;
   }
 
   async login(req: Request, dto: LoginDto) {
