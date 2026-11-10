@@ -8,7 +8,7 @@ import { TypeUserInfo } from './types/user-info.types';
 
 @Injectable()
 export class BaseOAuthService {
-  private BASE_URL: string;
+  private baseApplicationUrl: string | null = null;
 
   public constructor(private readonly options: TypeBaseProviderOptions) {}
 
@@ -39,6 +39,7 @@ export class BaseOAuthService {
     const tokenQuery = new URLSearchParams({
       client_id,
       client_secret,
+      code,
       redirect_uri: this.getRedirectUrl(),
       grant_type: 'authorization_code',
     });
@@ -47,12 +48,10 @@ export class BaseOAuthService {
       method: 'POST',
       body: tokenQuery,
       headers: {
-        'Content-type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/x-www-form-urlencoded',
         Accept: 'application/json',
       },
     });
-
-    const tokenResponse = await tokenRequest.json();
 
     if (!tokenRequest.ok) {
       throw new BadRequestException(
@@ -60,7 +59,9 @@ export class BaseOAuthService {
       );
     }
 
-    if (!tokenResponse.access_token) {
+    const tokens = await tokenRequest.json();
+
+    if (!tokens.access_token) {
       throw new BadRequestException(
         `No tokens from the site ${this.options.profile_url}.`,
       );
@@ -68,7 +69,7 @@ export class BaseOAuthService {
 
     const userRequest = await fetch(this.options.profile_url, {
       headers: {
-        Authorization: `Bearer ${tokenResponse.access_token}`,
+        Authorization: `Bearer ${tokens.access_token}`,
       },
     });
 
@@ -83,19 +84,26 @@ export class BaseOAuthService {
 
     return {
       ...userData,
-      access_token: tokenResponse.access_token,
-      refresh_token: tokenResponse.refresh_token,
-      expires_at: tokenResponse.expires_at || tokenResponse.expires_in,
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      expires_at: tokens.expires_at || tokens.expires_in,
       provider: this.options.name,
     };
   }
 
-  public getRedirectUrl() {
-    return `${this.BASE_URL}/auth/oauth/callback/${this.options.name}`;
+  public set baseUrl(value: string) {
+    this.baseApplicationUrl = value.replace(/\/+$/, '');
   }
 
-  set baseUrl(value: string) {
-    this.BASE_URL = value;
+  public getRedirectUrl(): string {
+    if (!this.baseApplicationUrl) {
+      throw new Error('OAuth base URL is not configured.');
+    }
+
+    return new URL(
+      `/auth/oauth/callback/${this.options.name}`,
+      this.baseApplicationUrl,
+    ).toString();
   }
 
   get name() {

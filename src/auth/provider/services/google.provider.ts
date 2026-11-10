@@ -6,7 +6,7 @@ export class GoogleProvider extends BaseOAuthService {
   public constructor(options: TypeProviderOptions) {
     super({
       name: 'google',
-      authorize_url: 'https://account.google.com/o/oauth2/v2/auth',
+      authorize_url: 'https://accounts.google.com/o/oauth2/v2/auth',
       access_url: 'https://oauth2.googleapis.com/token',
       profile_url: 'https://www.googleapis.com/oauth2/v3/userinfo',
       scopes: options.scopes,
