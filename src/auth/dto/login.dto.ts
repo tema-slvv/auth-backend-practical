@@ -1,6 +1,7 @@
 import {
   IsEmail,
   IsNotEmpty,
+  IsOptional,
   IsString,
   MaxLength,
   MinLength,
@@ -17,4 +18,8 @@ export class LoginDto {
   @MinLength(6)
   @MaxLength(100)
   password!: string;
+
+  @IsOptional()
+  @IsString()
+  code?: string;
 }

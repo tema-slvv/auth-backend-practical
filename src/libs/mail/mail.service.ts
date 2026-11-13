@@ -4,6 +4,7 @@ import { render } from '@react-email/components';
 import { Resend } from 'resend';
 import { ConfirmationTemplate } from './templates/confirmation.template';
 import { ResetPasswordTemplate } from './templates/resend-password.template';
+import { TwoFactorTemplate } from './templates/two-factor-auth.template';
 
 @Injectable()
 export class MailService {
@@ -27,6 +28,7 @@ export class MailService {
 
     return this.sendEmail(email, 'Confirm Email', html);
   }
+
   public async sendPasswordResetEmail(email: string, token: string) {
     const domain = this.configService.getOrThrow<string>('ALLOWED_ORIGIN');
     const html = await render(ResetPasswordTemplate({ domain, token }));
@@ -34,7 +36,17 @@ export class MailService {
     return this.sendEmail(email, 'Reset password', html);
   }
 
-  async sendEmail(to: string, subject: string, html: string): Promise<string> {
+  public async sendTwoFactorTokenEmail(email: string, token: string) {
+    const html = await render(TwoFactorTemplate({ token }));
+
+    return this.sendEmail(email, 'Two-factor auth', html);
+  }
+
+  private async sendEmail(
+    to: string,
+    subject: string,
+    html: string,
+  ): Promise<string> {
     const { data, error } = await this.resend.emails.send({
       from: this.from,
       to,
