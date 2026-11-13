@@ -11,18 +11,18 @@ import { IsPasswordsMatchingConstraint } from 'src/libs/common/decorators/is-pas
 export class RegisterDto {
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @IsString()
   @IsEmail()
   @IsNotEmpty()
-  email: string;
+  email!: string;
 
   @IsString()
   @IsNotEmpty()
   @MinLength(6)
   @MaxLength(100)
-  password: string;
+  password!: string;
 
   @IsString()
   @IsNotEmpty()
@@ -31,5 +31,5 @@ export class RegisterDto {
   @Validate(IsPasswordsMatchingConstraint, {
     message: 'Passwords do not match',
   })
-  passwordRepeat: string;
+  passwordRepeat!: string;
 }

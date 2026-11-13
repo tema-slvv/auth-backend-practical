@@ -15,6 +15,7 @@ import { verify } from 'argon2';
 import { ConfigService } from '@nestjs/config';
 import { ProviderService } from './provider/provider.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { EmailConfirmationService } from './email-confirmation/email-confirmation.service';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +24,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly configService: ConfigService,
     private readonly providerService: ProviderService,
+    private readonly emailConfirmationService: EmailConfirmationService,
   ) {}
 
   async register(req: Request, dto: RegisterDto) {
@@ -40,9 +42,11 @@ export class AuthService {
       false,
     );
 
-    const session = await this.saveSession(req, newUser);
+    await this.emailConfirmationService.sendVarificationToken(newUser);
 
-    return session;
+    return {
+      message: 'Please confirm your email address.',
+    };
   }
 
   async login(req: Request, dto: LoginDto) {
@@ -56,6 +60,11 @@ export class AuthService {
 
     if (!isValidPassword) {
       throw new UnauthorizedException('Incorrect password');
+    }
+
+    if (!user.isVerified) {
+      await this.emailConfirmationService.sendVarificationToken(user);
+      throw new UnauthorizedException('Your email not confirm.');
     }
 
     return this.saveSession(req, user);
@@ -125,7 +134,7 @@ export class AuthService {
     });
   }
 
-  async saveSession(req: Request, user: User) {
+  public async saveSession(req: Request, user: User) {
     return new Promise((resolve, reject) => {
       req.session.userId = user.id;
 

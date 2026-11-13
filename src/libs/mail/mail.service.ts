@@ -1,6 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { render } from '@react-email/components';
 import { Resend } from 'resend';
+import { ConfirmationTemplate } from './templates/confirmation.template';
 
 @Injectable()
 export class MailService {
@@ -16,6 +18,13 @@ export class MailService {
       'RESEND_FROM_EMAIL',
       'onboarding@resend.dev',
     );
+  }
+
+  public async sendConfirmationEmail(email: string, token: string) {
+    const domain = this.configService.getOrThrow<string>('ALLOWED_ORIGIN');
+    const html = await render(ConfirmationTemplate({ domain, token }));
+
+    return this.sendEmail(email, 'Confirm Email', html);
   }
 
   async sendEmail(to: string, subject: string, html: string): Promise<string> {

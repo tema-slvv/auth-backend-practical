@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { ProviderModule } from './auth/provider/provider.module';
 import { MailModule } from './libs/mail/mail.module';
+import { EmailConfirmationModule } from './auth/email-confirmation/email-confirmation.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { MailModule } from './libs/mail/mail.module';
     UserModule,
     ProviderModule,
     MailModule,
+    EmailConfirmationModule,
   ],
 })
 export class AppModule {}
